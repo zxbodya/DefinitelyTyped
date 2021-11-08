@@ -15,6 +15,26 @@ const validStyleObject: StyleObject = {
     },
 };
 
+const validStyleWithAnimation1: StyleObject = {
+    animationName: {
+        to: {
+            transform: 'rotate(360deg)',
+        },
+        from: {
+            transform: 'rotate(0deg)',
+        },
+    },
+};
+
+const validStyleWithAnimation2: StyleObject = {
+    animationDuration: '.1s',
+    animationName: {
+        '0%': { pointerEvents: 'none' },
+        '99%': { pointerEvents: 'none' },
+        '100%': { pointerEvents: 'auto' },
+    },
+};
+
 const renderStyle = (style: StyleObject) => 'style';
 const renderKeyframes = (keyframes: KeyframesObject) => 'keyframes';
 const renderFontFace = (fontFace: FontFace) => 'font-face';
