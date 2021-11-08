@@ -1,210 +1,200 @@
-// Type definitions for styletron-react 5.0
+// Type definitions for styletron-react 6.0
 // Project: https://github.com/styletron/styletron
 // Definitions by: Eric Taylor <https://github.com/erictaylor>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 3.1
 
 import * as React from 'react';
-import { driver, StandardEngine, StyleObject } from 'styletron-standard';
+import { StyleObject, StandardEngine, driver } from 'styletron-standard';
+export { StyleObject } from 'styletron-standard';
 
-export { StyleObject, StandardEngine };
-
-// From styletron-react types
-export interface Reducer {
-    // Static reducer = no props, dynamic requires props object
-    (style: StyleObject, props?: object): StyleObject;
-}
-
-export interface AssignmentCommutativeReducerContainer {
+interface AssignmentCommutativeReducerContainer {
     assignmentCommutative: true;
-    reducer: Reducer;
+    reducer: (style: StyleObject) => StyleObject;
     style: StyleObject;
     factory: (style: StyleObject) => AssignmentCommutativeReducerContainer;
 }
 
-export interface NonAssignmentCommutativeReducerContainer {
+interface NonAssignmentCommutativeReducerContainer {
     assignmentCommutative: false;
-    reducer: Reducer;
+    reducer: (style: StyleObject, props?: object) => StyleObject;
 }
 
-export type ReducerContainer = AssignmentCommutativeReducerContainer | NonAssignmentCommutativeReducerContainer;
+type ReducerContainer = AssignmentCommutativeReducerContainer | NonAssignmentCommutativeReducerContainer;
 
-export type StackIndex = number;
-
-// See addDebugMetadata in dev-tool.js
-export interface StackInfo {
-    stack: string | undefined;
-    stacktrace: any;
-    message: string;
-}
-
-export type StyletronBase = React.ElementType;
-export type StyletronDriver = typeof driver;
-export type StyletronGetInitialStyle = () => StyleObject;
-export type StyletronWrapper = (fc: React.FC<any>) => React.ComponentType<any>;
-
-export interface Styletron {
-    reducers: ReadonlyArray<ReducerContainer>;
-    base: StyletronBase;
-    driver: StyletronDriver;
-    wrapper: StyletronWrapper;
-    getInitialStyle: StyletronGetInitialStyle;
+interface Styletron {
+    reducers: ReducerContainer[];
+    base: React.ElementType;
+    driver: typeof driver;
+    name?: string;
+    wrapper: (fc: React.FC<any>) => React.ComponentType<any>;
+    getInitialStyle: () => StyleObject;
+    ext?: {
+        name?: string | null;
+        base: any;
+        getInitialStyle: any;
+        with: any;
+    };
     debug?: {
-        stackIndex: StackIndex;
-        stackInfo: StackInfo;
-    } | undefined;
+        stackIndex: number;
+        stackInfo: {
+            stack: string | undefined;
+            stacktrace: any;
+            message: string;
+        };
+    };
 }
 
-export type StyleObjectFn<P extends object> = (props: P) => StyleObject;
-
-export type $StyleProp<P extends object> = StyleObject | StyleObjectFn<P>;
-
-export interface StyletronComponentInjectedProps<P extends object> {
-    $as?: StyletronBase | undefined;
-    $style?: $StyleProp<P> | undefined;
-}
-
-export type StyletronComponent<P extends object> = React.FC<P & StyletronComponentInjectedProps<P>> & {
-    __STYLETRON__: Styletron;
+type StyletronProps<Props = {}> = Partial<{
+    $style: StyleObject | ((props: Props) => StyleObject);
+    $as: React.ComponentType<any> | keyof JSX.IntrinsicElements;
+    className: string;
+    /** @deprecated */
+    $ref: Props extends {
+        ref?: infer T;
+    }
+        ? T
+        : React.Ref<any>;
+    ref: Props extends {
+        ref?: infer T;
+    }
+        ? T
+        : React.Ref<any>;
+}>;
+type StyletronComponent<Props> = React.FC<Props & StyletronProps<Props>> & {
+    __STYLETRON__: any;
 };
-
-export interface StyledFn {
-    <C extends keyof JSX.IntrinsicElements | React.ComponentType<any>, P extends object>(
-        component: C,
-        style: (props: P) => StyleObject,
+interface StyledFn {
+    <T extends keyof JSX.IntrinsicElements | React.ComponentType<any>, Props>(
+        component: T,
+        style: StyleObject | ((a: Props) => StyleObject),
     ): StyletronComponent<
-        Pick<React.ComponentProps<C>, Exclude<keyof React.ComponentProps<C>, { className: string }>> & P
+        (T extends React.ComponentType<infer BaseProps>
+            ? BaseProps
+            : T extends keyof JSX.IntrinsicElements
+            ? JSX.IntrinsicElements[T]
+            : {}) &
+            Props
     >;
-    <C extends keyof JSX.IntrinsicElements | React.ComponentType<any>>(
-        component: C,
-        style: StyleObject,
-    ): StyletronComponent<Pick<React.ComponentProps<C>, Exclude<keyof React.ComponentProps<C>, { className: string }>>>;
 }
-
-export interface WithStyleFn {
-    <C extends StyletronComponent<any>, P extends object>(
-        component: C,
-        style: (props: P) => StyleObject,
-    ): StyletronComponent<React.ComponentProps<C> & P>;
-    <C extends StyletronComponent<any>>(component: C, style: StyleObject): StyletronComponent<React.ComponentProps<C>>;
+interface WithStyleFn {
+    <Base extends StyletronComponent<any>, Props = {}>(
+        comnponent: Base,
+        a: StyleObject | ((a: Props) => StyleObject),
+    ): StyletronComponent<(Base extends StyletronComponent<infer BaseProps> ? BaseProps : never) & Props>;
 }
+type WithTransformFn = <Base extends StyletronComponent<any>, Props>(
+    b: Base,
+    a: (b: StyleObject, a: Props) => StyleObject,
+) => StyletronComponent<(Base extends StyletronComponent<infer BaseProps> ? BaseProps : never) & Props>;
+type WithWrapperFn = <Base extends StyletronComponent<any>, Props>(
+    component: Base,
+    wrapper: (a: Base) => React.ComponentType<Props>,
+) => StyletronComponent<(Base extends StyletronComponent<infer BaseProps> ? BaseProps : never) & Props>;
 
-export interface WithTransformFn {
-    <C extends StyletronComponent<any>, P extends object>(
-        component: C,
-        style: (style: StyleObject, props: P) => StyleObject,
-    ): StyletronComponent<React.ComponentProps<C> & P>;
+declare class BrowserDebugEngine {
+    private worker;
+    private counter;
+    constructor(worker?: any);
+    debug({ stackIndex, stackInfo }: { stackIndex: any; stackInfo: any }): string;
 }
-
-export interface WithWrapperFn {
-    <C extends StyletronComponent<any>, P extends object>(
-        component: C,
-        wrapper: (component: C) => React.ComponentType<P>,
-    ): StyletronComponent<React.ComponentProps<C> & P>;
-}
-
-// ^^^^^^^^^^^^^^^^^^^^^^^^^
-// End of style-types
-
-export class BrowserDebugEngine {
-    debug(stack: { stackIndex: StackIndex; stackInfo: StackInfo }): string;
-}
-
-export class NoopDebugEngine {
+declare class NoopDebugEngine {
     debug(): void;
 }
 
-export const DebugEngine: typeof BrowserDebugEngine | typeof NoopDebugEngine;
+declare const DebugEngine: typeof BrowserDebugEngine | typeof NoopDebugEngine;
 
-export type DebugEngine = BrowserDebugEngine | NoopDebugEngine;
+declare global {
+    interface Window {
+        __STYLETRON_DEVTOOLS__: any;
+    }
+}
 
-export interface DevProviderProps {
+interface DevProviderProps {
     children: React.ReactNode;
     value: StandardEngine;
-    debugAfterHydration?: boolean | undefined;
-    /** DebugEngineContext */
-    debug?: DebugEngine | undefined;
+    debugAfterHydration?: boolean;
+    debug?: any;
 }
 
-export class DevProvider extends React.Component<DevProviderProps, { hydrating: boolean }> {}
+declare class DevProvider extends React.Component<
+    DevProviderProps,
+    {
+        hydrating: boolean;
+    }
+> {
+    constructor(props: DevProviderProps);
+    componentDidMount(): void;
+    render(): JSX.Element;
+}
+declare const Provider: typeof DevProvider | React.Provider<StandardEngine>;
 
-export const Provider: typeof DevProvider | React.Provider<StandardEngine>;
-
-export function DevConsumer(props: {
-    children: (styletronEngine: StandardEngine, debugEngine: DebugEngine, hydrating: boolean) => React.ReactNode;
-}): JSX.Element;
-
-/**
- * @param style the StyleObject
- * @returns string to be used in className prop of JSX.Element
- */
-export type CSSFn = (style: StyleObject) => string;
-
-export function useStyletron(): Readonly<[CSSFn]>;
-
-export interface CreateStyledOptions {
-    getInitialStyle: StyletronGetInitialStyle;
-    driver: StyletronDriver;
-    wrapper: StyletronWrapper;
+interface CreateStyledOptions {
+    getInitialStyle: () => StyleObject;
+    driver: typeof driver;
+    wrapper: (a: React.FC<any>) => React.ComponentType<any>;
 }
 
-export function createStyled(options: CreateStyledOptions): StyledFn;
-
-export const styled: ReturnType<typeof createStyled>;
-
-export function createStyledElementComponent(styletron: Styletron): StyletronComponent<any>;
-
-export const withTransform: WithTransformFn;
-
-export const withStyleDeep: WithStyleFn;
-
-/**
- * Aliases to withStyleDeep()
- * @deprecated use withStyleDeep()
- */
-export const withStyle: typeof withStyleDeep;
-
-export const withWrapper: WithWrapperFn;
-
-export function composeStatic(styletron: Styletron, reducerContainer: ReducerContainer): Styletron;
-
-export function composeDynamic(
+declare function useStyletron(): [(style: StyleObject) => string];
+declare function createStyled({ getInitialStyle, driver, wrapper }: CreateStyledOptions): StyledFn;
+declare const styled: StyledFn;
+declare const withTransform: WithTransformFn;
+declare const withStyleDeep: WithStyleFn;
+declare const withStyle: WithStyleFn;
+declare const withWrapper: WithWrapperFn;
+declare function autoComposeShallow(
+    styletron: Styletron,
+    styleArg: StyleObject | ((props: object) => StyleObject),
+): Styletron;
+declare function autoComposeDeep(
+    styletron: Styletron,
+    styleArg: StyleObject | ((props: object) => StyleObject),
+): Styletron;
+declare function staticComposeShallow(styletron: Styletron, style: StyleObject): Styletron;
+declare function staticComposeDeep(styletron: Styletron, style: StyleObject): Styletron;
+declare function dynamicComposeShallow(styletron: Styletron, styleFn: (props: object) => StyleObject): Styletron;
+declare function dynamicComposeDeep(styletron: Styletron, styleFn: (props: object) => StyleObject): Styletron;
+declare function createShallowMergeReducer(style: StyleObject): AssignmentCommutativeReducerContainer;
+declare function createDeepMergeReducer(style: StyleObject): AssignmentCommutativeReducerContainer;
+declare function composeStatic(
+    styletron: Styletron,
+    reducerContainer: AssignmentCommutativeReducerContainer,
+): Styletron;
+declare function composeDynamic(
     styletron: Styletron,
     reducer: (style: StyleObject, props: object) => StyleObject,
 ): Styletron;
-
-export function staticComposeShallow(styletron: Styletron, style: StyleObject): ReturnType<typeof composeStatic>;
-
-export function staticComposeDeep(styletron: Styletron, style: StyleObject): ReturnType<typeof composeStatic>;
-
-export function dynamicComposeShallow(
-    styletron: Styletron,
-    styleArg: (props: object) => StyleObject,
-): ReturnType<typeof composeDynamic>;
-
-export function dynamicComposeDeep(
-    styletron: Styletron,
-    styleArg: (props: object) => StyleObject,
-): ReturnType<typeof composeDynamic>;
-
-export function autoComposeShallow(
-    styletron: Styletron,
-    styleArg: StyleObject | ((props: object) => StyleObject),
-): ReturnType<typeof staticComposeShallow>;
-
-export function autoComposeDeep(styletron: Styletron, styleArg: StyleObject): ReturnType<typeof staticComposeDeep>;
-export function autoComposeDeep(
-    styletron: Styletron,
-    styleArg: (props: object) => StyleObject,
-): ReturnType<typeof dynamicComposeDeep>;
-
-export function createShallowMergeReducer(style: StyleObject): AssignmentCommutativeReducerContainer;
-
-export function createDeepMergeReducer(style: StyleObject): AssignmentCommutativeReducerContainer;
-
-// Utility functions
-export function resolveStyle(
+declare function createStyledElementComponent(styletron: Styletron): StyletronComponent<any>;
+declare function resolveStyle(
     getInitialStyle: () => StyleObject,
-    reducers: ReadonlyArray<ReducerContainer>,
+    reducers: ReducerContainer[],
     props: object,
 ): StyleObject;
+
+// added for backward compatibility
+export { StandardEngine, DevProvider };
+
+export {
+    DebugEngine,
+    Provider,
+    StyletronProps,
+    autoComposeDeep,
+    autoComposeShallow,
+    composeDynamic,
+    composeStatic,
+    createDeepMergeReducer,
+    createShallowMergeReducer,
+    createStyled,
+    createStyledElementComponent,
+    dynamicComposeDeep,
+    dynamicComposeShallow,
+    resolveStyle,
+    staticComposeDeep,
+    staticComposeShallow,
+    styled,
+    useStyletron,
+    withStyle,
+    withStyleDeep,
+    withTransform,
+    withWrapper,
+};
