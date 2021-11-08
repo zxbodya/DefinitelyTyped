@@ -5,7 +5,7 @@ import {
     StyleObject,
     StandardEngine,
     KeyframesObject,
-    FontFace,
+    FontFaceObject,
 } from 'styletron-standard';
 
 const validStyleObject: StyleObject = {
@@ -17,7 +17,7 @@ const validStyleObject: StyleObject = {
 
 const renderStyle = (style: StyleObject) => 'style';
 const renderKeyframes = (keyframes: KeyframesObject) => 'keyframes';
-const renderFontFace = (fontFace: FontFace) => 'font-face';
+const renderFontFace = (fontFace: FontFaceObject) => 'font-face';
 
 const engine: StandardEngine = {
     renderStyle,
