@@ -10,6 +10,7 @@ import {
     Provider,
     useStyletron,
     DevProvider,
+    StyletronProps,
 } from 'styletron-react';
 
 // styled()
@@ -173,3 +174,9 @@ const DevApp = () => (
 const [css] = useStyletron();
 
 <div className={css({ backgroundColor: 'pink' })} />;
+
+export type StyletronComponent<Props extends object> = React.FunctionComponent<
+    Props & StyletronProps<Props>
+    > & {
+    __STYLETRON__: any;
+};
