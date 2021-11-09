@@ -173,6 +173,7 @@ declare function resolveStyle(
 
 // added for backward compatibility
 export { StandardEngine, DevProvider };
+export { StyletronComponent, StyledFn, WithStyleFn };
 
 export {
     DebugEngine,

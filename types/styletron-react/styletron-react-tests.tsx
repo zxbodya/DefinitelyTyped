@@ -11,6 +11,10 @@ import {
     useStyletron,
     DevProvider,
     StyletronProps,
+    StyleObject,
+    StyletronComponent,
+    WithStyleFn as StyletronWithStyleFn,
+    StyledFn as StyletronStyledFn,
 } from 'styletron-react';
 
 // styled()
@@ -175,8 +179,41 @@ const [css] = useStyletron();
 
 <div className={css({ backgroundColor: 'pink' })} />;
 
-export type StyletronComponent<Props extends object> = React.FunctionComponent<
+export type CustomStyletronComponent<Props extends object> = React.FunctionComponent<
     Props & StyletronProps<Props>
     > & {
     __STYLETRON__: any;
 };
+
+// backward compatibility tests, from baseui
+
+declare function customWithWrapper<
+    C extends StyletronComponent<any>,
+    P extends object
+    >(
+    component: C,
+    wrapper: (component: C) => React.ComponentType<P>,
+): StyletronComponent<React.ComponentProps<C> & P>;
+
+export interface CustomWithStyleFn<T = any> extends StyletronWithStyleFn {
+    <C extends StyletronComponent<any>, P extends object, T1 = T>(
+        component: C,
+        style: (props: P & {$theme: T1}) => StyleObject,
+    ): StyletronComponent<React.ComponentProps<C> & P>;
+}
+
+export interface CustomStyledFn<T> extends StyletronStyledFn {
+    <
+        C extends keyof JSX.IntrinsicElements | React.ComponentType<any>,
+        P extends object
+        >(
+        component: C,
+        style: (props: {$theme: T} & P) => StyleObject,
+    ): StyletronComponent<
+        Pick<
+            React.ComponentProps<C>,
+            Exclude<keyof React.ComponentProps<C>, {className: string}>
+            > &
+        P
+        >;
+}
