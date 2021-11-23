@@ -15,6 +15,7 @@ import {
     StyletronComponent,
     WithStyleFn as StyletronWithStyleFn,
     StyledFn as StyletronStyledFn,
+    $StyleProp,
 } from 'styletron-react';
 
 // styled()
@@ -216,4 +217,8 @@ export interface CustomStyledFn<T> extends StyletronStyledFn {
             > &
         P
         >;
+}
+
+interface BlockProps {
+    $style?: $StyleProp<BlockProps>;
 }

@@ -174,6 +174,8 @@ declare function resolveStyle(
 // added for backward compatibility
 export { StandardEngine, DevProvider };
 export { StyletronComponent, StyledFn, WithStyleFn };
+export type StyleObjectFn<P extends object> = (props: P) => StyleObject;
+export type $StyleProp<P extends object> = StyleObject | StyleObjectFn<P>;
 
 export {
     DebugEngine,
