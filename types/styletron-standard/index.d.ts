@@ -6,7 +6,26 @@
 
 import * as CSS from 'csstype';
 
-export type Properties = CSS.Properties<string | number>;
+export type AnimationNameProperty = CSS.Property.AnimationName | KeyframesObject;
+export type FontFamilyProperty = CSS.Property.FontFamily | FontFace;
+export type Properties = {
+    animationName?: AnimationNameProperty;
+    fontFamily?: FontFamilyProperty | FontFamilyProperty[];
+    MozAnimationName?: AnimationNameProperty;
+    WebkitAnimationName?: AnimationNameProperty;
+    OAnimationName?: AnimationNameProperty;
+} & Omit<
+  CSS.StandardProperties<string | number> &
+  CSS.VendorProperties<string | number> &
+  CSS.ObsoleteProperties<string | number> &
+  CSS.SvgProperties<string | number>,
+  | "animationName"
+  | "fontFamily"
+  | "MozAnimationName"
+  | "WebkitAnimationName"
+  | "OAnimationName"
+>;
+
 export type FontFace = CSS.AtRule.FontFace;
 export interface KeyframesPercentageObject {
     [key: string]: Properties;
